@@ -23,12 +23,12 @@ export function toneOf(value: string | null | undefined): Tone {
 }
 
 export const TONE_CLASSES: Record<Tone, string> = {
-  green: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-  red: 'bg-rose-50 text-rose-700 ring-rose-600/20',
-  yellow: 'bg-amber-50 text-amber-800 ring-amber-600/25',
-  blue: 'bg-sky-50 text-sky-700 ring-sky-600/20',
-  gray: 'bg-slate-50 text-slate-600 ring-slate-500/15',
-  violet: 'bg-violet-50 text-violet-700 ring-violet-600/20',
+  green: 'bg-emerald-50 text-emerald-800 ring-emerald-600/30',
+  red: 'bg-rose-50 text-rose-800 ring-rose-600/30',
+  yellow: 'bg-amber-50 text-amber-900 ring-amber-600/35',
+  blue: 'bg-sky-50 text-sky-800 ring-sky-600/30',
+  gray: 'bg-slate-50 text-slate-700 ring-slate-500/25',
+  violet: 'bg-violet-50 text-violet-800 ring-violet-600/30',
 };
 
 /** Warna tahap untuk progres & grafik ringkas. */

@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { Logo, useAuth } from './AuthProvider';
+import { IconLogOut } from './icons';
 
 const NAV = [
   { to: '/', label: 'Project', end: true },
@@ -22,12 +23,14 @@ export function Layout() {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-right text-xs leading-tight text-slate-500 sm:block">
+            <span className="hidden text-right text-xs leading-tight text-slate-600 sm:block">
               <span className="block font-semibold text-slate-800">{member.nama || member.email}</span>
               {member.role === 'admin' ? 'Admin' : 'Anggota'}
             </span>
-            <button onClick={signOut} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">
-              Keluar
+            <button onClick={signOut} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100">
+              <IconLogOut />
+              <span className="hidden sm:inline">Keluar</span>
+              <span className="sr-only sm:hidden">Keluar</span>
             </button>
           </div>
         </div>
@@ -50,7 +53,7 @@ function NavItem({ to, label, end }: { to: string; label: string; end?: boolean 
       to={to}
       end={end}
       className={({ isActive }) =>
-        `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${isActive ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`
+        `inline-flex h-9 items-center whitespace-nowrap rounded-lg px-3 text-sm font-semibold transition-colors duration-150 ${isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`
       }
     >
       {label}
@@ -63,7 +66,7 @@ export function PageHeader({ title, subtitle, actions }: { title: React.ReactNod
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
         <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
-        {subtitle && <div className="mt-1 text-sm text-slate-500">{subtitle}</div>}
+        {subtitle && <div className="mt-1.5 text-sm text-slate-600">{subtitle}</div>}
       </div>
       {actions && <div className="flex flex-wrap gap-2 print:hidden">{actions}</div>}
     </div>

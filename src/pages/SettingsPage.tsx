@@ -6,6 +6,7 @@ import { PageHeader } from '../components/Layout';
 import { KATEGORI_LABEL, SYSTEM_VALUES, useOptions } from '../components/OptionsProvider';
 import { useAuth } from '../components/AuthProvider';
 import { Badge, Button, ErrorBox, inputCls, Spinner, errMsg, useToast } from '../components/ui';
+import { IconX } from '../components/icons';
 
 export function SettingsPage() {
   const { isAdmin } = useAuth();
@@ -128,8 +129,8 @@ function OptionRow({
               <button className="rounded px-1.5 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-100" onClick={() => onSave({ aktif: !option.aktif })}>
                 {option.aktif ? 'Nonaktifkan' : 'Aktifkan'}
               </button>
-              <button className="rounded p-1 text-xs text-slate-300 hover:bg-rose-50 hover:text-rose-600" aria-label={`Hapus ${option.nilai}`} onClick={onDelete}>
-                ✕
+              <button className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600" aria-label={`Hapus ${option.nilai}`} onClick={onDelete}>
+                <IconX className="h-4 w-4" />
               </button>
             </>
           )}
@@ -226,11 +227,11 @@ function MembersSection() {
                       {m.aktif ? 'Nonaktifkan' : 'Aktifkan'}
                     </Button>
                     <button
-                      className="rounded p-1 text-xs text-slate-300 hover:bg-rose-50 hover:text-rose-600"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
                       aria-label={`Hapus ${m.email}`}
                       onClick={() => confirm(`Hapus ${m.email} dari tim?`) && run(() => deleteMember(m.id), 'Anggota dihapus')}
                     >
-                      ✕
+                      <IconX className="h-4 w-4" />
                     </button>
                   </>
                 ) : (

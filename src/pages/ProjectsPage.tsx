@@ -6,6 +6,7 @@ import { STEP_BAR } from '../lib/badge';
 import type { Item, Project } from '../lib/types';
 import { PageHeader } from '../components/Layout';
 import { Badge, Button, EmptyState, ErrorBox, Field, inputCls, Modal, Spinner, errMsg, useToast } from '../components/ui';
+import { IconPlus } from '../components/icons';
 
 export function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -48,12 +49,13 @@ export function ProjectsPage() {
         subtitle="Progres tiap sisipan berdasarkan langkah berikutnya per item."
         actions={
           <>
-            <label className="flex items-center gap-2 px-1 text-sm text-slate-600">
-              <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={hideDone} onChange={(e) => setHideDone(e.target.checked)} />
+            <label className="flex h-10 cursor-pointer items-center gap-2 px-1 text-sm text-slate-700">
+              <input type="checkbox" className="h-4 w-4 cursor-pointer rounded border-slate-400" checked={hideDone} onChange={(e) => setHideDone(e.target.checked)} />
               Sembunyikan yang selesai
             </label>
             <Button variant="primary" onClick={() => setShowNew(true)}>
-              + Project baru
+              <IconPlus />
+              Project baru
             </Button>
           </>
         }
@@ -94,38 +96,40 @@ function ProjectCard({ project, items }: { project: Project; items: Item[] }) {
   return (
     <Link
       to={`/project/${project.id}`}
-      className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+      className="group flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-sky-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="truncate text-base font-bold text-slate-900 group-hover:text-sky-800">{project.nama}</h2>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <h2 className="truncate text-lg font-bold text-slate-900 group-hover:text-sky-800">{project.nama}</h2>
+          <p className="mt-0.5 text-sm text-slate-600">
             {total} item · EPI {epi} · AZH {total - epi}
           </p>
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold tabular-nums text-slate-900">{pct}%</div>
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">sampel jadi</div>
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">selesai</div>
         </div>
       </div>
 
-      <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-slate-100" aria-hidden>
+      <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-slate-100" aria-hidden>
         {STEP_ORDER.map((s) => (counts[s] ? <div key={s} className={STEP_BAR[s]} style={{ width: `${(counts[s] / total) * 100}%` }} /> : null))}
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+      <dl className="mt-4 grid grid-cols-1 gap-y-1.5 text-[13px] sm:grid-cols-2 sm:gap-x-4">
         {STEP_ORDER.map((s) => (
           <div key={s} className="flex items-center justify-between gap-2">
-            <dt className="flex min-w-0 items-center gap-1.5 text-slate-600">
-              <span className={`h-2 w-2 shrink-0 rounded-full ${STEP_BAR[s]}`} />
-              <span className="truncate">{s}</span>
+            <dt className="flex min-w-0 items-center gap-1.5 text-slate-700">
+              <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${STEP_BAR[s]}`} />
+              <span className="truncate" title={s}>
+                {s}
+              </span>
             </dt>
-            <dd className={`font-semibold tabular-nums ${counts[s] ? 'text-slate-900' : 'text-slate-300'}`}>{counts[s]}</dd>
+            <dd className={`font-semibold tabular-nums ${counts[s] ? 'text-slate-900' : 'text-slate-400'}`}>{counts[s]}</dd>
           </div>
         ))}
       </dl>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-[13px] text-slate-600">
         <span>Full cetak</span>
         <Badge value={project.full_cetak} />
         <span className="ml-2">Project selesai</span>

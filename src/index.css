@@ -7,7 +7,29 @@ html {
 }
 
 body {
-  @apply bg-slate-100 font-sans text-slate-900 antialiased;
+  @apply bg-slate-100 font-sans text-[15px] leading-relaxed text-slate-900 antialiased;
+}
+
+/* Fokus keyboard selalu terlihat */
+:focus-visible {
+  outline: 2px solid theme('colors.sky.500');
+  outline-offset: 2px;
+}
+
+/* Angka rata & mudah dibandingkan */
+.tabular-nums {
+  font-feature-settings: 'tnum' 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media print {

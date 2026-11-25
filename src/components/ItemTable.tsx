@@ -5,6 +5,7 @@ import type { Item } from '../lib/types';
 import { DateCell, DesainCell, LinkCell, SelectCell, TextCell } from './cells';
 import { useOptions } from './OptionsProvider';
 import { Badge, Button, inputCls } from './ui';
+import { IconFilter, IconTrash, IconX } from './icons';
 
 const GROUP_ACCENT: Record<string, string> = {
   Identitas: 'border-slate-400',
@@ -88,28 +89,30 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-center gap-2 print:hidden">
-        <Button size="sm" variant={showFilters ? 'primary' : 'secondary'} onClick={() => setShowFilters((v) => !v)}>
+        <Button size="sm" variant={showFilters ? 'primary' : 'secondary'} onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
+          <IconFilter className="h-3.5 w-3.5" />
           Filter kolom{activeFilters ? ` (${activeFilters})` : ''}
         </Button>
         {activeFilters > 0 && (
           <Button size="sm" variant="ghost" onClick={() => setFilters({})}>
+            <IconX className="h-3.5 w-3.5" />
             Hapus filter
           </Button>
         )}
-        <span className="text-xs text-slate-500">
-          {visible.length} dari {rows.length} item
+        <span className="text-[13px] text-slate-600">
+          Menampilkan <b className="font-semibold text-slate-900">{visible.length}</b> dari {rows.length} item
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full border-separate border-spacing-0 text-xs">
-          <thead className="text-left">
+      <div className="max-h-[calc(100vh-11rem)] overflow-auto rounded-xl border border-slate-200 bg-white shadow-sm print:max-h-none print:overflow-visible">
+        <table className="w-full border-separate border-spacing-0 text-[13px]">
+          <thead className="sticky top-0 z-20 text-left">
             <tr>
               <th className="sticky left-0 z-20 w-9 border-b border-slate-200 bg-slate-50" rowSpan={showFilters ? 3 : 2}>
                 <input
                   type="checkbox"
                   aria-label="Pilih semua baris yang tampil"
-                  className="ml-3 h-4 w-4 rounded border-slate-300"
+                  className="ml-3 h-4 w-4 cursor-pointer rounded border-slate-400"
                   checked={allChecked}
                   onChange={() =>
                     setSelected((s) => {
@@ -125,7 +128,7 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
                 <th
                   key={g.name}
                   colSpan={g.span}
-                  className={`border-b border-t-[3px] border-b-slate-200 bg-slate-50 px-2 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 ${GROUP_ACCENT[g.name]}`}
+                  className={`border-b border-t-[3px] border-b-slate-200 bg-slate-50 px-2 pb-1 pt-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600 ${GROUP_ACCENT[g.name]}`}
                 >
                   {g.name}
                 </th>
@@ -135,7 +138,7 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
               {ITEM_COLUMNS.map((c) => (
                 <th
                   key={c.key}
-                  className={`whitespace-nowrap border-b border-slate-200 bg-slate-50 px-2 py-2 text-[11px] font-semibold text-slate-700 ${c.width ?? ''} ${c.key === 'nama_produk' ? 'sticky left-9 z-10 shadow-[1px_0_0_#e2e8f0]' : ''}`}
+                  className={`whitespace-nowrap border-b border-slate-300 bg-slate-50 px-2 py-2.5 text-xs font-semibold text-slate-800 ${c.width ?? ''} ${c.key === 'nama_produk' ? 'sticky left-9 z-10 shadow-[1px_0_0_#e2e8f0]' : ''}`}
                 >
                   {c.label}
                 </th>
@@ -154,25 +157,30 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
           <tbody>
             {visible.length === 0 && (
               <tr>
-                <td colSpan={ITEM_COLUMNS.length + 1} className="px-4 py-10 text-center text-sm text-slate-400">
+                <td colSpan={ITEM_COLUMNS.length + 1} className="px-4 py-12 text-center text-sm text-slate-500">
                   Tidak ada item yang cocok.
                 </td>
               </tr>
             )}
-            {visible.map(({ it, d }) => {
+            {visible.map(({ it, d }, idx) => {
               const isSel = selected.has(it.id);
-              const rowBg = isSel ? 'bg-sky-50' : 'bg-white group-hover:bg-slate-50';
+              const rowBg = isSel ? 'bg-sky-50' : `${idx % 2 ? 'bg-slate-50/70' : 'bg-white'} group-hover:bg-amber-50/60`;
               return (
                 <tr key={it.id} className="group">
                   <td className={`sticky left-0 z-10 border-b border-slate-100 ${rowBg}`}>
-                    <input type="checkbox" aria-label={`Pilih ${it.nama_produk} ${it.no_batch ?? ''}`} className="ml-3 h-4 w-4 rounded border-slate-300" checked={isSel} onChange={() => toggle(it.id)} />
+                    <input type="checkbox" aria-label={`Pilih ${it.nama_produk} ${it.no_batch ?? ''}`} className="ml-3 h-4 w-4 cursor-pointer rounded border-slate-400" checked={isSel} onChange={() => toggle(it.id)} />
                   </td>
                   {ITEM_COLUMNS.map((c) => (
                     <td
                       key={c.key}
-                      className={`border-b border-slate-100 px-1.5 py-1 align-middle ${c.key === 'nama_produk' ? `sticky left-9 z-[5] shadow-[1px_0_0_#e2e8f0] ${rowBg}` : rowBg}`}
+                      className={`border-b border-slate-200/70 px-1.5 py-1.5 align-middle ${c.key === 'nama_produk' ? `sticky left-9 z-[5] shadow-[1px_0_0_#e2e8f0] ${rowBg}` : rowBg}`}
                     >
                       <Cell col={c} item={it} d={d} options={c.kategori ? options[c.kategori] : []} onPatch={onPatch} />
+                      {c.key === 'nama_produk' && (
+                        <div className="mt-0.5 px-2 print:hidden" title="Langkah berikutnya">
+                          <Badge value={d.langkah} className="!text-[11px]" />
+                        </div>
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -190,7 +198,7 @@ function isChoiceFilter(c: ItemColumn) {
 }
 
 function FilterInput({ col, value, values, onChange }: { col: ItemColumn; value: string; values: string[]; onChange: (v: string) => void }) {
-  const cls = 'h-7 w-full rounded-md border border-slate-200 bg-white px-1.5 text-[11px] focus:border-sky-400 focus:outline-none';
+  const cls = 'h-8 w-full rounded-md border border-slate-300 bg-white px-2 text-xs focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20';
   if (isChoiceFilter(col)) {
     return (
       <select aria-label={`Filter ${col.label}`} className={cls} value={value} onChange={(e) => onChange(e.target.value)}>
@@ -267,7 +275,7 @@ export function BulkBar({ count, onClear, onApply, onDelete }: { count: number; 
     <div className="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-4xl flex-wrap items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm text-white shadow-2xl print:hidden">
       <span className="font-semibold">{count} dipilih</span>
       <span className="text-slate-400">· ubah</span>
-      <select aria-label="Kolom yang diubah" className="h-8 rounded-md bg-slate-800 px-2 text-xs text-white" value={key} onChange={(e) => (setKey(e.target.value), setValue(''))}>
+      <select aria-label="Kolom yang diubah" className="h-9 cursor-pointer rounded-md bg-slate-800 px-2 text-sm text-white" value={key} onChange={(e) => (setKey(e.target.value), setValue(''))}>
         {BULK_COLUMNS.map((c) => (
           <option key={c.key} value={c.key}>
             {c.label}
@@ -276,7 +284,7 @@ export function BulkBar({ count, onClear, onApply, onDelete }: { count: number; 
       </select>
       <span className="text-slate-400">=</span>
       {choices ? (
-        <select aria-label="Nilai baru" className="h-8 rounded-md bg-slate-800 px-2 text-xs text-white" value={value} onChange={(e) => setValue(e.target.value)}>
+        <select aria-label="Nilai baru" className="h-9 cursor-pointer rounded-md bg-slate-800 px-2 text-sm text-white" value={value} onChange={(e) => setValue(e.target.value)}>
           <option value="">{col.type === 'desain' ? '(Otomatis)' : '(kosong)'}</option>
           {choices.map((o) => (
             <option key={o} value={o}>
@@ -288,7 +296,7 @@ export function BulkBar({ count, onClear, onApply, onDelete }: { count: number; 
         <input
           aria-label="Nilai baru"
           type={col.type === 'date' ? 'date' : 'text'}
-          className={`${inputCls} !h-8 !w-44 !border-slate-700 !bg-slate-800 !text-xs !text-white`}
+          className={`${inputCls} !h-9 !w-44 !border-slate-700 !bg-slate-800 !text-sm !text-white`}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="(kosong)"
@@ -299,6 +307,7 @@ export function BulkBar({ count, onClear, onApply, onDelete }: { count: number; 
       </Button>
       <div className="ml-auto flex gap-1">
         <Button size="sm" variant="ghost" className="!text-rose-300 hover:!bg-slate-800" onClick={onDelete}>
+          <IconTrash className="h-3.5 w-3.5" />
           Hapus
         </Button>
         <Button size="sm" variant="ghost" className="!text-slate-300 hover:!bg-slate-800" onClick={onClear}>

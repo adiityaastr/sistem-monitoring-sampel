@@ -6,6 +6,7 @@ import { PageHeader } from '../components/Layout';
 import { SelectCell, TextCell } from '../components/cells';
 import { useOptions } from '../components/OptionsProvider';
 import { Button, EmptyState, ErrorBox, Field, inputCls, Modal, Spinner, errMsg, useToast } from '../components/ui';
+import { IconX } from '../components/icons';
 
 type Key = keyof Omit<SampleMissing, 'id' | 'updated_at' | 'updated_by'>;
 const COLS: { key: Key; label: string; kategori?: OptionKategori | 'brand' }[] = [
@@ -141,7 +142,7 @@ export function SamplesPage() {
                   ))}
                   <td>
                     <button
-                      className="rounded p-1 text-slate-300 hover:bg-rose-50 hover:text-rose-600"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
                       aria-label={`Hapus ${r.nama_produk}`}
                       onClick={async () => {
                         if (!confirm(`Hapus ${r.nama_produk} ${r.no_batch ?? ''}?`)) return;
@@ -153,7 +154,7 @@ export function SamplesPage() {
                         }
                       }}
                     >
-                      ✕
+                      <IconX className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>

@@ -9,15 +9,15 @@ export function RekapPanel({ items }: { items: Item[] }) {
   const keys = [...REKAP_KEBUTUHAN, ...extra];
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white">
-      <header className="flex items-baseline justify-between border-b border-slate-100 px-4 py-3">
-        <h2 className="text-sm font-bold text-slate-900">Rekap Monitoring</h2>
-        <span className="text-xs text-slate-500">Selesai = kolom “Selesai” bernilai SUDAH</span>
+    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-slate-100 px-4 py-3">
+        <h2 className="text-base font-bold text-slate-900">Rekap Monitoring</h2>
+        <span className="text-xs text-slate-600">Selesai = kolom “Selesai” bernilai SUDAH</span>
       </header>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-xs tabular-nums">
+        <table className="w-full min-w-[640px] text-[13px] tabular-nums">
           <thead>
-            <tr className="text-[10px] uppercase tracking-wider text-slate-500">
+            <tr className="text-[11px] uppercase tracking-wider text-slate-600">
               <th rowSpan={2} className="px-4 py-2 text-left align-bottom font-semibold">
                 Kebutuhan
               </th>
@@ -27,7 +27,7 @@ export function RekapPanel({ items }: { items: Item[] }) {
                 </th>
               ))}
             </tr>
-            <tr className="border-b border-slate-100 text-[10px] text-slate-400">
+            <tr className="border-b border-slate-200 text-xs text-slate-500">
               {[0, 1, 2].flatMap((i) =>
                 ['Jumlah', 'Selesai', 'Belum'].map((h) => (
                   <th key={`${i}${h}`} className={`px-2 pb-2 text-right font-medium ${h === 'Jumlah' ? 'border-l border-slate-100' : ''}`}>
@@ -39,7 +39,7 @@ export function RekapPanel({ items }: { items: Item[] }) {
           </thead>
           <tbody>
             {keys.map((k) => (
-              <tr key={k} className="border-b border-slate-50">
+              <tr key={k} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-1.5 font-semibold text-slate-700">{k}</td>
                 <Cells c={r[k].EPI} />
                 <Cells c={r[k].AZH} />
@@ -60,12 +60,11 @@ export function RekapPanel({ items }: { items: Item[] }) {
 }
 
 function Cells({ c, strong }: { c: RekapCell; strong?: boolean }) {
-  const dim = (n: number) => (n === 0 ? 'text-slate-300' : '');
   return (
     <>
-      <td className={`border-l border-slate-100 px-2 py-1.5 text-right ${strong ? 'font-bold' : ''} ${dim(c.jumlah)}`}>{c.jumlah}</td>
-      <td className={`px-2 py-1.5 text-right text-emerald-700 ${dim(c.selesai)}`}>{c.selesai}</td>
-      <td className={`px-2 py-1.5 text-right ${c.belum ? 'text-rose-600' : 'text-slate-300'}`}>{c.belum}</td>
+      <td className={`border-l border-slate-100 px-2 py-2 text-right ${strong ? 'font-bold' : ''} ${c.jumlah ? '' : 'text-slate-400'}`}>{c.jumlah}</td>
+      <td className={`px-2 py-2 text-right ${c.selesai ? 'font-semibold text-emerald-700' : 'text-slate-400'}`}>{c.selesai}</td>
+      <td className={`px-2 py-2 text-right ${c.belum ? 'font-semibold text-rose-700' : 'text-slate-400'}`}>{c.belum}</td>
     </>
   );
 }

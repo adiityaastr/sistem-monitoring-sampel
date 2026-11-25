@@ -13,6 +13,7 @@ import { SelectCell } from '../components/cells';
 import { useOptions } from '../components/OptionsProvider';
 import { useAuth } from '../components/AuthProvider';
 import { Button, ErrorBox, Field, inputCls, Modal, Spinner, errMsg, useToast } from '../components/ui';
+import { IconArrowLeft, IconChevronDown, IconDownload, IconExternal, IconFolder, IconPencil, IconPlus, IconSearch } from '../components/icons';
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -56,19 +57,22 @@ export function ProjectDetailPage() {
 
   return (
     <>
-      <Link to="/" className="text-xs font-semibold text-slate-500 hover:text-slate-800 print:hidden">
-        ← Semua project
+      <Link to="/" className="-ml-2 mb-1 inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white hover:text-slate-900 print:hidden">
+        <IconArrowLeft />
+        Semua project
       </Link>
       <PageHeader
         title={project.nama}
         subtitle={
           <span className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {project.link_folder_desain ? (
-              <a href={project.link_folder_desain} target="_blank" rel="noreferrer" className="font-semibold text-sky-700 hover:underline">
-                Folder desain ↗
+              <a href={project.link_folder_desain} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-sky-700 hover:underline">
+                <IconFolder />
+                Folder desain
+                <IconExternal className="h-3.5 w-3.5" />
               </a>
             ) : (
-              <span className="text-rose-600">Link folder desain belum diisi</span>
+              <span className="font-medium text-rose-700">Link folder desain belum diisi</span>
             )}
             <span className="flex items-center gap-1.5">
               Full cetak
@@ -82,45 +86,70 @@ export function ProjectDetailPage() {
         }
         actions={
           <>
-            <Button onClick={() => setEditing(true)}>Ubah project</Button>
-            <Button onClick={() => exportProjectXlsx(project, items).catch((e) => toast(errMsg(e), 'error'))}>Ekspor Excel</Button>
+            <Button onClick={() => setEditing(true)}>
+              <IconPencil className="h-3.5 w-3.5" />
+              Ubah project
+            </Button>
+            <Button onClick={() => exportProjectXlsx(project, items).catch((e) => toast(errMsg(e), 'error'))}>
+              <IconDownload />
+              Ekspor Excel
+            </Button>
             <Button variant="primary" onClick={() => setAddBrand('EPI')}>
-              + Tambah item
+              <IconPlus />
+              Tambah item
             </Button>
           </>
         }
       />
 
       {/* ringkasan tahap */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        {STEP_ORDER.map((s) => (
-          <div key={s} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs">
-            <span className={`h-2 w-2 rounded-full ${STEP_BAR[s]}`} />
-            <span className="text-slate-600">{s}</span>
-            <span className="font-bold tabular-nums text-slate-900">{stepCounts.get(s) ?? 0}</span>
-          </div>
-        ))}
+      <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+        {STEP_ORDER.map((s) => {
+          const n = stepCounts.get(s) ?? 0;
+          return (
+            <div key={s} className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
+              <div className="flex items-center gap-1.5 text-xs font-medium leading-tight text-slate-600">
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${STEP_BAR[s]}`} />
+                {s}
+              </div>
+              <div className={`mt-1 text-2xl font-bold tabular-nums ${n ? 'text-slate-900' : 'text-slate-400'}`}>{n}</div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="mb-4">
-        <button className="mb-2 text-xs font-semibold text-slate-500 hover:text-slate-800 print:hidden" onClick={() => setShowRekap((v) => !v)}>
-          {showRekap ? '▾ Sembunyikan rekap' : '▸ Tampilkan rekap monitoring'}
+        <button
+          className="-ml-2 mb-2 inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white hover:text-slate-900 print:hidden"
+          onClick={() => setShowRekap((v) => !v)}
+          aria-expanded={showRekap}
+        >
+          <IconChevronDown className={`h-4 w-4 transition-transform duration-200 ${showRekap ? '' : '-rotate-90'}`} />
+          {showRekap ? 'Sembunyikan rekap monitoring' : 'Tampilkan rekap monitoring'}
         </button>
         {showRekap && <RekapPanel items={items} />}
       </div>
 
       <div className="sticky top-14 z-30 -mx-4 mb-3 flex flex-wrap items-center gap-2 bg-slate-100/95 px-4 py-2 backdrop-blur max-md:top-[100px] print:hidden">
-        <input
-          type="search"
-          className={`${inputCls} max-w-sm`}
-          placeholder="Cari nama produk atau no batch…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Cari nama produk atau no batch"
-        />
-        <div className="flex rounded-lg bg-white p-1 text-xs font-semibold ring-1 ring-slate-200">
+        <div className="relative w-full max-w-sm">
+          <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <input
+            type="search"
+            className={`${inputCls} pl-9`}
+            placeholder="Cari nama produk atau no batch…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Cari nama produk atau no batch"
+          />
+        </div>
+        <div className="flex rounded-lg bg-white p-1 text-sm font-semibold ring-1 ring-slate-200" role="group" aria-label="Tampilkan brand">
           {(['ALL', ...BRANDS] as const).map((b) => (
-            <button key={b} className={`rounded-md px-3 py-1.5 ${brandTab === b ? 'bg-slate-900 text-white' : 'text-slate-600'}`} onClick={() => setBrandTab(b)}>
+            <button
+              key={b}
+              aria-pressed={brandTab === b}
+              className={`h-8 rounded-md px-3 transition-colors ${brandTab === b ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+              onClick={() => setBrandTab(b)}
+            >
               {b === 'ALL' ? 'EPI + AZH' : b}
             </button>
           ))}
@@ -139,10 +168,11 @@ export function ProjectDetailPage() {
               <section key={brand}>
                 <div className="mb-2 flex items-center gap-3">
                   <h2 className="text-lg font-bold text-slate-900">
-                    {brand} <span className="text-sm font-medium text-slate-400">· {brandItems.length} item</span>
+                    {brand} <span className="text-sm font-medium text-slate-500">· {brandItems.length} item</span>
                   </h2>
                   <Button size="sm" variant="ghost" onClick={() => setAddBrand(brand)}>
-                    + Tambah item {brand}
+                    <IconPlus className="h-3.5 w-3.5" />
+                    Tambah item {brand}
                   </Button>
                 </div>
                 <ItemTable items={brandItems} search={search} onPatch={patch} selected={selected} setSelected={setSelected} />
