@@ -108,11 +108,11 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
         <table className="w-full border-separate border-spacing-0 text-[13px]">
           <thead className="sticky top-0 z-20 text-left">
             <tr>
-              <th className="sticky left-0 z-20 w-9 border-b border-slate-200 bg-slate-50" rowSpan={showFilters ? 3 : 2}>
+              <th className="sticky left-0 z-20 w-10 min-w-[2.5rem] max-w-[2.5rem] border-b border-slate-200 bg-slate-50 text-center" rowSpan={showFilters ? 3 : 2}>
                 <input
                   type="checkbox"
                   aria-label="Pilih semua baris yang tampil"
-                  className="ml-3 h-4 w-4 cursor-pointer rounded border-slate-400"
+                  className="h-4 w-4 cursor-pointer rounded border-slate-400 align-middle"
                   checked={allChecked}
                   onChange={() =>
                     setSelected((s) => {
@@ -138,7 +138,7 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
               {ITEM_COLUMNS.map((c) => (
                 <th
                   key={c.key}
-                  className={`whitespace-nowrap border-b border-slate-300 bg-slate-50 px-2 py-2.5 text-xs font-semibold text-slate-800 ${c.width ?? ''} ${c.key === 'nama_produk' ? 'sticky left-9 z-10 shadow-[1px_0_0_#e2e8f0]' : ''}`}
+                  className={`whitespace-nowrap border-b border-slate-300 bg-slate-50 px-2 py-2.5 text-xs font-semibold text-slate-800 ${c.width ?? ''} ${c.key === 'nama_produk' ? 'sticky left-10 z-10 shadow-[1px_0_0_#e2e8f0]' : ''}`}
                 >
                   {c.label}
                 </th>
@@ -147,7 +147,7 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
             {showFilters && (
               <tr className="print:hidden">
                 {ITEM_COLUMNS.map((c) => (
-                  <th key={c.key} className={`border-b border-slate-200 bg-white px-1.5 py-1.5 font-normal ${c.key === 'nama_produk' ? 'sticky left-9 z-10' : ''}`}>
+                  <th key={c.key} className={`border-b border-slate-200 bg-white px-1.5 py-1.5 font-normal ${c.key === 'nama_produk' ? 'sticky left-10 z-10' : ''}`}>
                     <FilterInput col={c} value={filters[c.key] ?? ''} values={distinct[c.key] ?? []} onChange={(v) => setFilters((f) => ({ ...f, [c.key]: v }))} />
                   </th>
                 ))}
@@ -164,16 +164,16 @@ export function ItemTable({ items, search, onPatch, selected, setSelected }: Pro
             )}
             {visible.map(({ it, d }, idx) => {
               const isSel = selected.has(it.id);
-              const rowBg = isSel ? 'bg-sky-50' : `${idx % 2 ? 'bg-slate-50/70' : 'bg-white'} group-hover:bg-amber-50/60`;
+              const rowBg = isSel ? 'bg-sky-50' : `${idx % 2 ? 'bg-slate-50' : 'bg-white'} group-hover:bg-amber-50`;
               return (
                 <tr key={it.id} className="group">
-                  <td className={`sticky left-0 z-10 border-b border-slate-100 ${rowBg}`}>
-                    <input type="checkbox" aria-label={`Pilih ${it.nama_produk} ${it.no_batch ?? ''}`} className="ml-3 h-4 w-4 cursor-pointer rounded border-slate-400" checked={isSel} onChange={() => toggle(it.id)} />
+                  <td className={`sticky left-0 z-10 w-10 min-w-[2.5rem] max-w-[2.5rem] border-b border-slate-200/70 text-center ${rowBg}`}>
+                    <input type="checkbox" aria-label={`Pilih ${it.nama_produk} ${it.no_batch ?? ''}`} className="h-4 w-4 cursor-pointer rounded border-slate-400 align-middle" checked={isSel} onChange={() => toggle(it.id)} />
                   </td>
                   {ITEM_COLUMNS.map((c) => (
                     <td
                       key={c.key}
-                      className={`border-b border-slate-200/70 px-1.5 py-1.5 align-middle ${c.key === 'nama_produk' ? `sticky left-9 z-[5] shadow-[1px_0_0_#e2e8f0] ${rowBg}` : rowBg}`}
+                      className={`border-b border-slate-200/70 px-1.5 py-1.5 align-middle ${c.key === 'nama_produk' ? `sticky left-10 z-[5] shadow-[1px_0_0_#e2e8f0] ${rowBg}` : rowBg}`}
                     >
                       <Cell col={c} item={it} d={d} options={c.kategori ? options[c.kategori] : []} onPatch={onPatch} />
                       {c.key === 'nama_produk' && (
