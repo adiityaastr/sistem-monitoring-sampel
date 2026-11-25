@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Logo, useAuth } from './AuthProvider';
 import { IconLogOut } from './icons';
 
@@ -12,19 +13,31 @@ const NAV = [
 
 export function Layout() {
   const { member, signOut } = useAuth();
+  const { pathname } = useLocation();
+  const mobileNav = useRef<HTMLElement>(null);
+
+  // HP/tablet: geser menu agar halaman aktif selalu terlihat
+  useEffect(() => {
+    const nav = mobileNav.current;
+    const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !active) return;
+    const left = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
+    nav.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  }, [pathname]);
+
   return (
     <div className="min-h-screen bg-slate-100">
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:hidden">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-4 px-4">
           <Logo />
-          <nav className="ml-4 hidden gap-1 md:flex">
+          <nav className="ml-4 hidden gap-1 lg:flex" aria-label="Menu utama">
             {NAV.map((n) => (
               <NavItem key={n.to} {...n} />
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-right text-xs leading-tight text-slate-600 sm:block">
-              <span className="block font-semibold text-slate-800">{member.nama || member.email}</span>
+          <div className="ml-auto flex shrink-0 items-center gap-3">
+            <span className="hidden max-w-[180px] text-right text-xs leading-tight text-slate-600 sm:block lg:hidden xl:block">
+              <span className="block truncate font-semibold text-slate-800">{member.nama || member.email}</span>
               {member.role === 'admin' ? 'Admin' : 'Anggota'}
             </span>
             <button onClick={signOut} className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100">
@@ -34,7 +47,7 @@ export function Layout() {
             </button>
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-3 py-1.5 md:hidden">
+        <nav ref={mobileNav} aria-label="Menu utama" className="flex gap-1 overflow-x-auto border-t border-slate-100 px-3 py-1.5 [scrollbar-width:none] lg:hidden">
           {NAV.map((n) => (
             <NavItem key={n.to} {...n} />
           ))}
@@ -65,7 +78,7 @@ export function PageHeader({ title, subtitle, actions }: { title: React.ReactNod
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+        <h1 className="break-words text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
         {subtitle && <div className="mt-1.5 text-sm text-slate-600">{subtitle}</div>}
       </div>
       {actions && <div className="flex flex-wrap gap-2 print:hidden">{actions}</div>}

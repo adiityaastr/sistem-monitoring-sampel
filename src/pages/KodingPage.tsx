@@ -226,9 +226,9 @@ export function KodingPage() {
                   <thead className="bg-slate-50 text-left text-[11px] text-slate-600 print:bg-white">
                     <tr>
                       <th className="w-28 px-3 py-2 font-semibold">Kelompok</th>
-                      <th className="px-3 py-2 font-semibold">Nama Produk</th>
-                      <th className="px-3 py-2 font-semibold">Gramasi</th>
-                      <th className="px-3 py-2 font-semibold">No Batch</th>
+                      <th className="min-w-[200px] px-3 py-2 font-semibold">Nama Produk</th>
+                      <th className="whitespace-nowrap px-3 py-2 font-semibold">Gramasi</th>
+                      <th className="whitespace-nowrap px-3 py-2 font-semibold">No Batch</th>
                       <th className="px-3 py-2 font-semibold">Sediaan</th>
                       <th className="min-w-[200px] px-3 py-2 font-semibold">Catatan</th>
                       <th className="min-w-[200px] px-3 py-2 font-semibold">Catatan Sampel</th>
@@ -248,9 +248,9 @@ export function KodingPage() {
                             <span className="mr-1.5 text-[10px] font-bold text-slate-400">{it.brand}</span>
                             {it.nama_produk}
                           </td>
-                          <td className="px-3 py-1.5">{it.gramasi}</td>
-                          <td className="px-3 py-1.5 tabular-nums">{it.no_batch}</td>
-                          <td className="px-3 py-1.5">{it.sediaan}</td>
+                          <td className="whitespace-nowrap px-3 py-1.5">{it.gramasi}</td>
+                          <td className="whitespace-nowrap px-3 py-1.5 tabular-nums">{it.no_batch}</td>
+                          <td className="whitespace-nowrap px-3 py-1.5">{it.sediaan}</td>
                           <td className="max-w-[320px] px-1.5 py-1">
                             <TextCell value={it.catatan} multiline label={`Catatan ${it.nama_produk} ${it.no_batch ?? ''}`} onSave={(v) => patch(it.id, { catatan: v })} />
                           </td>

@@ -115,7 +115,7 @@ function ProjectCard({ project, items }: { project: Project; items: Item[] }) {
         {STEP_ORDER.map((s) => (counts[s] ? <div key={s} className={STEP_BAR[s]} style={{ width: `${(counts[s] / total) * 100}%` }} /> : null))}
       </div>
 
-      <dl className="mt-4 grid grid-cols-1 gap-y-1.5 text-[13px] sm:grid-cols-2 sm:gap-x-4">
+      <dl className="mt-4 grid grid-cols-1 gap-y-1.5 text-[13px]">
         {STEP_ORDER.map((s) => (
           <div key={s} className="flex items-center justify-between gap-2">
             <dt className="flex min-w-0 items-center gap-1.5 text-slate-700">

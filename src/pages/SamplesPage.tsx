@@ -6,7 +6,7 @@ import { PageHeader } from '../components/Layout';
 import { SelectCell, TextCell } from '../components/cells';
 import { useOptions } from '../components/OptionsProvider';
 import { Button, EmptyState, ErrorBox, Field, inputCls, Modal, Spinner, errMsg, useToast } from '../components/ui';
-import { IconX } from '../components/icons';
+import { IconPlus, IconX } from '../components/icons';
 
 type Key = keyof Omit<SampleMissing, 'id' | 'updated_at' | 'updated_by'>;
 const COLS: { key: Key; label: string; kategori?: OptionKategori | 'brand' }[] = [
@@ -75,7 +75,8 @@ export function SamplesPage() {
         subtitle="Daftar produk/batch yang sampelnya belum tersedia."
         actions={
           <Button variant="primary" onClick={() => setAdding(true)}>
-            + Tambah
+            <IconPlus />
+            Tambah sampel
           </Button>
         }
       />
@@ -111,7 +112,7 @@ export function SamplesPage() {
             <thead className="bg-slate-50 text-left text-[11px] text-slate-600">
               <tr>
                 {COLS.map((c) => (
-                  <th key={c.key} className="px-2 py-2 font-semibold">
+                  <th key={c.key} className={`whitespace-nowrap px-2 py-2 font-semibold ${c.key === 'nama_produk' ? 'min-w-[200px]' : ''}`}>
                     {c.label}
                   </th>
                 ))}
@@ -122,7 +123,7 @@ export function SamplesPage() {
               {visible.map((r) => (
                 <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50">
                   {COLS.map((c) => (
-                    <td key={c.key} className="px-1.5 py-1">
+                    <td key={c.key} className={`px-1.5 py-1 ${c.key === 'nama_produk' ? '' : 'whitespace-nowrap'}`}>
                       {c.kategori ? (
                         <SelectCell
                           label={`${c.label} ${r.nama_produk}`}

@@ -23,7 +23,8 @@ export function ProjectDetailPage() {
   const [projectError, setProjectError] = useState<string | null>(null);
   const { items, setItems, loading, error, reload, patch, bulk, remove } = useItems(id);
   const [search, setSearch] = useState('');
-  const [showRekap, setShowRekap] = useState(true);
+  // di HP rekap disembunyikan dulu agar tabel item langsung terlihat
+  const [showRekap, setShowRekap] = useState(() => typeof window === 'undefined' || window.matchMedia('(min-width: 640px)').matches);
   const [addBrand, setAddBrand] = useState<Brand | null>(null);
   const [editing, setEditing] = useState(false);
   const [brandTab, setBrandTab] = useState<Brand | 'ALL'>('ALL');
@@ -130,7 +131,7 @@ export function ProjectDetailPage() {
         {showRekap && <RekapPanel items={items} />}
       </div>
 
-      <div className="sticky top-14 z-30 -mx-4 mb-3 flex flex-wrap items-center gap-2 bg-slate-100/95 px-4 py-2 backdrop-blur max-md:top-[100px] print:hidden">
+      <div className="sticky top-14 z-30 -mx-4 mb-3 flex flex-wrap items-center gap-2 bg-slate-100/95 px-4 py-2 backdrop-blur max-lg:top-[106px] print:hidden">
         <div className="relative w-full max-w-sm">
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
