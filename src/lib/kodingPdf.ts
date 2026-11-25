@@ -9,11 +9,9 @@ function safeFileName(s: string): string {
   return s.replace(/[\\/:*?"<>|]+/g, '_').trim() || 'export';
 }
 
-const isUrl = (s: string | null | undefined) => /^https?:\/\//i.test((s ?? '').trim());
-
 /**
  * Ekspor List Koding ke PDF (A4 landscape). Setiap kelompok mulai di
- * halaman baru. Link file kemasan bisa diklik; item tanpa link ditandai merah.
+ * halaman baru. Kolom terakhir: Catatan & Catatan Sampel.
  * jsPDF dimuat saat dibutuhkan agar bundle awal tetap kecil.
  */
 export async function exportKodingPdf(projectName: string, groups: KodingPdfGroup[]): Promise<void> {
@@ -93,7 +91,7 @@ async function buildKodingPdf(projectName: string, groups: KodingPdfGroup[]) {
     autoTable(doc, {
       startY: margin + 22,
       margin: { left: margin, right: margin, bottom: 16 },
-      head: [['No', 'Brand', 'Nama Produk', 'Gramasi', 'No Batch', 'Sediaan', 'Link File Kemasan']],
+      head: [['No', 'Brand', 'Nama Produk', 'Gramasi', 'No Batch', 'Sediaan', 'Catatan', 'Catatan Sampel']],
       body: g.items.map((it, idx) => [
         String(idx + 1),
         it.brand,
@@ -101,7 +99,8 @@ async function buildKodingPdf(projectName: string, groups: KodingPdfGroup[]) {
         it.gramasi ?? '',
         it.no_batch ?? '',
         it.sediaan ?? '',
-        (it.file_kemasan ?? '').trim() || 'BELUM ADA LINK FILE',
+        it.catatan ?? '',
+        it.catatan_sampel ?? '',
       ]),
       theme: 'grid',
       styles: { font: 'helvetica', fontSize: 9, cellPadding: 2.2, textColor: [15, 23, 42], lineColor: [203, 213, 225], lineWidth: 0.2, valign: 'middle', overflow: 'linebreak' },
@@ -110,27 +109,13 @@ async function buildKodingPdf(projectName: string, groups: KodingPdfGroup[]) {
       columnStyles: {
         0: { cellWidth: 10, halign: 'center' },
         1: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
-        2: { cellWidth: 72, fontStyle: 'bold' },
-        3: { cellWidth: 22 },
-        4: { cellWidth: 28 },
-        5: { cellWidth: 26 },
-        6: { cellWidth: 'auto', fontSize: 8 },
-      },
-      didParseCell: (data) => {
-        if (data.section !== 'body' || data.column.index !== 6) return;
-        const it = g.items[data.row.index];
-        if (!(it.file_kemasan ?? '').trim()) {
-          data.cell.styles.textColor = [190, 18, 60];
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [255, 241, 242];
-        } else if (isUrl(it.file_kemasan)) {
-          data.cell.styles.textColor = [3, 105, 161];
-        }
-      },
-      didDrawCell: (data) => {
-        if (data.section !== 'body' || data.column.index !== 6) return;
-        const url = g.items[data.row.index].file_kemasan;
-        if (isUrl(url)) doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, { url: url!.trim() });
+        2: { cellWidth: 64, fontStyle: 'bold' },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 26 },
+        5: { cellWidth: 24 },
+        // sisa lebar A4 landscape (273 mm) dibagi rata untuk dua kolom catatan
+        6: { cellWidth: 57.5 },
+        7: { cellWidth: 57.5 },
       },
     });
   });
