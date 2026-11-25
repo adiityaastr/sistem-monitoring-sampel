@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { assignKelompok, fetchProjects } from '../lib/data';
 import { autoGroupKoding, compareKelompok, MAX_PER_KELOMPOK } from '../lib/koding';
 import { exportKodingXlsx } from '../lib/excelExport';
+import { exportKodingPdf, printKodingPdf, type KodingPdfGroup } from '../lib/kodingPdf';
+import { IconDownload, IconPrinter } from '../components/icons';
 import { langkahBerikutnya, norm, STEP } from '../lib/rules';
 import { useItems } from '../lib/useItems';
 import type { Item, Project } from '../lib/types';
@@ -18,6 +20,7 @@ export function KodingPage() {
   const [projError, setProjError] = useState<string | null>(null);
   const [showSubmitted, setShowSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProjects().then(setProjects, (e) => setProjError(errMsg(e)));
@@ -75,6 +78,22 @@ export function KodingPage() {
     }
   };
 
+  /** kind 'pdf' = unduh file, 'print' = buka dialog cetak. Tata letak keduanya sama. */
+  const runPdf = async (kind: 'pdf' | 'print', key: string, list: KodingPdfGroup[]) => {
+    if (list.length === 0) {
+      toast('Tidak ada kelompok untuk dicetak atau diekspor.');
+      return;
+    }
+    setPdfBusy(`${kind}:${key}`);
+    try {
+      await (kind === 'pdf' ? exportKodingPdf : printKodingPdf)(project?.nama ?? 'PROJECT', list);
+    } catch (e) {
+      toast(`${kind === 'pdf' ? 'Gagal membuat PDF' : 'Gagal mencetak'}: ${errMsg(e)}`, 'error');
+    } finally {
+      setPdfBusy(null);
+    }
+  };
+
   const markSubmitted = async (g: (typeof groups)[number]) => {
     const warn = g.missingLink ? `\n\n${g.missingLink} item belum punya link file kemasan.` : '';
     if (!confirm(`Tandai ${g.items.length} item di ${g.label} sudah diserahkan ke koding?${warn}`)) return;
@@ -106,7 +125,14 @@ export function KodingPage() {
                 </option>
               ))}
             </select>
-            <Button onClick={() => window.print()}>Cetak</Button>
+            <Button disabled={pdfBusy !== null || shownGroups.length === 0} onClick={() => runPdf('print', '__all__', shownGroups)} title="Cetak semua kelompok yang tampil, tiap kelompok di halaman sendiri">
+              <IconPrinter />
+              {pdfBusy === 'print:__all__' ? 'Menyiapkan…' : 'Cetak semua'}
+            </Button>
+            <Button disabled={pdfBusy !== null || shownGroups.length === 0} onClick={() => runPdf('pdf', '__all__', shownGroups)} title="Satu file PDF, tiap kelompok di halaman sendiri">
+              <IconDownload />
+              {pdfBusy === 'pdf:__all__' ? 'Membuat PDF…' : 'PDF semua kelompok'}
+            </Button>
             <Button
               onClick={() =>
                 exportKodingXlsx(
@@ -178,11 +204,21 @@ export function KodingPage() {
                 <span className={`text-xs font-semibold ${g.items.length > MAX_PER_KELOMPOK ? 'text-rose-600' : 'text-slate-500'}`}>{g.items.length} item</span>
                 {g.submitted ? <Badge value="SUDAH DISERAHKAN" tone="green" /> : <Badge value="BELUM DISERAHKAN" tone="blue" />}
                 {g.missingLink > 0 && <Badge value={`⚠ ${g.missingLink} tanpa link file`} tone="red" />}
-                {!g.submitted && (
-                  <Button size="sm" variant="primary" className="ml-auto print:hidden" onClick={() => markSubmitted(g)}>
-                    Tandai sudah diserahkan
+                <div className="ml-auto flex flex-wrap gap-2 print:hidden">
+                  <Button size="sm" disabled={pdfBusy !== null} onClick={() => runPdf('print', g.label, [g])} aria-label={`Cetak ${g.label}`}>
+                    <IconPrinter className="h-3.5 w-3.5" />
+                    {pdfBusy === `print:${g.label}` ? 'Menyiapkan…' : 'Cetak'}
                   </Button>
-                )}
+                  <Button size="sm" disabled={pdfBusy !== null} onClick={() => runPdf('pdf', g.label, [g])} aria-label={`Ekspor PDF ${g.label}`}>
+                    <IconDownload className="h-3.5 w-3.5" />
+                    {pdfBusy === `pdf:${g.label}` ? 'Membuat PDF…' : 'Ekspor PDF'}
+                  </Button>
+                  {!g.submitted && (
+                    <Button size="sm" variant="primary" onClick={() => markSubmitted(g)}>
+                      Tandai sudah diserahkan
+                    </Button>
+                  )}
+                </div>
               </header>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[720px] text-xs">
