@@ -5,6 +5,7 @@ import { autoGroupKoding, compareKelompok, MAX_PER_KELOMPOK } from '../lib/kodin
 import { exportKodingXlsx } from '../lib/excelExport';
 import { exportKodingPdf, printKodingPdf, type KodingPdfGroup } from '../lib/kodingPdf';
 import { IconDownload, IconPrinter } from '../components/icons';
+import { TextCell } from '../components/cells';
 import { langkahBerikutnya, norm, STEP } from '../lib/rules';
 import { useItems } from '../lib/useItems';
 import type { Item, Project } from '../lib/types';
@@ -229,14 +230,14 @@ export function KodingPage() {
                       <th className="px-3 py-2 font-semibold">Gramasi</th>
                       <th className="px-3 py-2 font-semibold">No Batch</th>
                       <th className="px-3 py-2 font-semibold">Sediaan</th>
-                      <th className="px-3 py-2 font-semibold">Link File Kemasan</th>
+                      <th className="min-w-[200px] px-3 py-2 font-semibold">Catatan</th>
+                      <th className="min-w-[200px] px-3 py-2 font-semibold">Catatan Sampel</th>
                     </tr>
                   </thead>
                   <tbody>
                     {g.items.map((it) => {
-                      const noLink = !(it.file_kemasan ?? '').trim();
                       return (
-                        <tr key={it.id} className={`border-t border-slate-100 ${noLink ? 'bg-rose-50/70' : ''}`}>
+                        <tr key={it.id} className="border-t border-slate-100">
                           <td className="px-3 py-1.5">
                             <span className="hidden print:inline">{g.label}</span>
                             <span className="print:hidden">
@@ -250,14 +251,11 @@ export function KodingPage() {
                           <td className="px-3 py-1.5">{it.gramasi}</td>
                           <td className="px-3 py-1.5 tabular-nums">{it.no_batch}</td>
                           <td className="px-3 py-1.5">{it.sediaan}</td>
-                          <td className="max-w-[320px] px-3 py-1.5">
-                            {noLink ? (
-                              <span className="font-semibold text-rose-600">⚠ Belum ada link file</span>
-                            ) : (
-                              <a href={it.file_kemasan!} target="_blank" rel="noreferrer" className="break-all text-sky-700 hover:underline print:text-slate-800">
-                                {it.file_kemasan}
-                              </a>
-                            )}
+                          <td className="max-w-[320px] px-1.5 py-1">
+                            <TextCell value={it.catatan} multiline label={`Catatan ${it.nama_produk} ${it.no_batch ?? ''}`} onSave={(v) => patch(it.id, { catatan: v })} />
+                          </td>
+                          <td className="max-w-[320px] px-1.5 py-1">
+                            <TextCell value={it.catatan_sampel} multiline label={`Catatan sampel ${it.nama_produk} ${it.no_batch ?? ''}`} onSave={(v) => patch(it.id, { catatan_sampel: v })} />
                           </td>
                         </tr>
                       );
