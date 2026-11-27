@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { deleteMember, deleteOption, fetchMembers, upsertMember, upsertOption } from '../lib/data';
+import { createMemberAccount, deleteMember, deleteOption, fetchMembers, setMemberPassword, upsertMember, upsertOption } from '../lib/data';
 import { norm } from '../lib/rules';
 import type { MasterOption, OptionKategori, TeamMember } from '../lib/types';
 import { PageHeader } from '../components/Layout';
 import { KATEGORI_LABEL, SYSTEM_VALUES, useOptions } from '../components/OptionsProvider';
 import { useAuth } from '../components/AuthProvider';
-import { Badge, Button, ErrorBox, inputCls, Spinner, errMsg, useToast } from '../components/ui';
-import { IconX } from '../components/icons';
+import { Badge, Button, ErrorBox, Field, inputCls, Modal, Spinner, errMsg, useToast } from '../components/ui';
+import { IconKey, IconX } from '../components/icons';
 
 export function SettingsPage() {
   const { isAdmin } = useAuth();
@@ -168,7 +168,10 @@ function MembersSection() {
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [nama, setNama] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<'member' | 'admin'>('member');
+  const [adding, setAdding] = useState(false);
+  const [pwFor, setPwFor] = useState<TeamMember | null>(null);
 
   const load = useCallback(() => fetchMembers().then(setMembers, (e) => setError(errMsg(e))), []);
   useEffect(() => {
@@ -180,8 +183,33 @@ function MembersSection() {
       await fn();
       await load();
       toast(ok);
+      return true;
     } catch (e) {
       toast(errMsg(e).includes('duplicate') ? 'Email sudah terdaftar' : errMsg(e), 'error');
+      return false;
+    }
+  };
+
+  const addMember = async () => {
+    const em = email.trim().toLowerCase();
+    if (!em) return;
+    if (password && password.length < MIN_PASSWORD) {
+      toast(`Kata sandi minimal ${MIN_PASSWORD} karakter`, 'error');
+      return;
+    }
+    setAdding(true);
+    const ok = password
+      ? await run(
+          () => createMemberAccount({ email: em, password, nama: nama.trim() || null, role }),
+          `Akun ${em} dibuat. Sampaikan email & kata sandinya ke anggota.`,
+        )
+      : await run(() => upsertMember({ email: em, nama: nama.trim() || null, role, aktif: true }), 'Anggota ditambahkan (masuk lewat Link email)');
+    setAdding(false);
+    if (ok) {
+      setEmail('');
+      setNama('');
+      setPassword('');
+      setRole('member');
     }
   };
 
@@ -189,8 +217,9 @@ function MembersSection() {
     <section className="rounded-xl border border-slate-200 bg-white">
       <header className="border-b border-slate-100 px-4 py-3">
         <h2 className="font-bold text-slate-900">Anggota tim</h2>
-        <p className="text-xs text-slate-500">
-          Hanya email terdaftar & aktif yang bisa melihat data. Setelah ditambahkan, anggota masuk lewat halaman login (pilih “Link email” bila belum punya kata sandi).
+        <p className="text-xs text-slate-600">
+          Hanya email terdaftar & aktif yang bisa melihat data. Admin bisa langsung membuatkan akun dengan kata sandi, atau mengosongkan kata sandi agar
+          anggota masuk lewat “Link email”.
         </p>
       </header>
 
@@ -208,15 +237,21 @@ function MembersSection() {
               <li key={m.id} className={`flex flex-wrap items-center gap-2 px-4 py-2.5 ${m.aktif ? '' : 'opacity-50'}`}>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-slate-800">
-                    {m.nama || m.email} {self && <span className="text-xs font-normal text-slate-400">(Anda)</span>}
+                    {m.nama || m.email} {self && <span className="text-xs font-normal text-slate-500">(Anda)</span>}
                   </div>
                   <div className="truncate text-xs text-slate-500">{m.email}</div>
                 </div>
+                {isAdmin && (
+                  <Button size="sm" variant="ghost" onClick={() => setPwFor(m)} title="Buat atau ganti kata sandi login">
+                    <IconKey className="h-3.5 w-3.5" />
+                    Atur kata sandi
+                  </Button>
+                )}
                 {isAdmin && !self ? (
                   <>
                     <select
                       aria-label={`Peran ${m.email}`}
-                      className="h-8 rounded-md border border-slate-200 px-2 text-xs"
+                      className="h-9 rounded-md border border-slate-300 px-2 text-xs"
                       value={m.role}
                       onChange={(e) => run(() => upsertMember({ ...m, role: e.target.value as TeamMember['role'] }), 'Peran diperbarui')}
                     >
@@ -245,28 +280,122 @@ function MembersSection() {
 
       {isAdmin && (
         <form
-          className="grid gap-2 border-t border-slate-100 p-4 sm:grid-cols-[2fr_1.5fr_auto_auto]"
+          className="space-y-3 border-t border-slate-100 p-4"
           onSubmit={(e) => {
             e.preventDefault();
-            const em = email.trim().toLowerCase();
-            if (!em) return;
-            run(() => upsertMember({ email: em, nama: nama.trim() || null, role, aktif: true }), 'Anggota ditambahkan').then(() => {
-              setEmail('');
-              setNama('');
-            });
+            addMember();
           }}
         >
-          <input type="email" required aria-label="Email anggota baru" className={inputCls} placeholder="email@perusahaan.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input aria-label="Nama anggota baru" className={inputCls} placeholder="Nama" value={nama} onChange={(e) => setNama(e.target.value)} />
-          <select aria-label="Peran anggota baru" className={`${inputCls} !w-auto`} value={role} onChange={(e) => setRole(e.target.value as 'member' | 'admin')}>
-            <option value="member">Anggota</option>
-            <option value="admin">Admin</option>
-          </select>
-          <Button type="submit" variant="primary">
-            Tambah
+          <h3 className="text-sm font-bold text-slate-900">Tambah anggota</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Field label="Email">
+              <input type="email" required autoComplete="off" className={inputCls} placeholder="email@perusahaan.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </Field>
+            <Field label="Nama">
+              <input autoComplete="off" className={inputCls} placeholder="Nama" value={nama} onChange={(e) => setNama(e.target.value)} />
+            </Field>
+            <Field label="Kata sandi" hint={`Minimal ${MIN_PASSWORD} karakter. Kosongkan bila anggota masuk lewat Link email.`}>
+              <PasswordInput value={password} onChange={setPassword} />
+            </Field>
+            <Field label="Peran">
+              <select className={inputCls} value={role} onChange={(e) => setRole(e.target.value as 'member' | 'admin')}>
+                <option value="member">Anggota</option>
+                <option value="admin">Admin</option>
+              </select>
+            </Field>
+          </div>
+          <Button type="submit" variant="primary" disabled={adding || !email.trim()}>
+            {adding ? 'Menyimpan…' : password ? 'Buat akun' : 'Tambah anggota'}
           </Button>
         </form>
       )}
+
+      <SetPasswordModal member={pwFor} onClose={() => setPwFor(null)} onDone={load} />
     </section>
+  );
+}
+
+const MIN_PASSWORD = 8;
+
+/** Kolom kata sandi dengan tombol tampil/sembunyi (admin perlu melihatnya untuk disampaikan). */
+function PasswordInput({ value, onChange, autoFocus }: { value: string; onChange: (v: string) => void; autoFocus?: boolean }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        type={show ? 'text' : 'password'}
+        autoComplete="new-password"
+        autoFocus={autoFocus}
+        className={`${inputCls} pr-24`}
+        placeholder="••••••••"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="absolute right-1 top-1/2 h-8 -translate-y-1/2 rounded-md px-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+        aria-label={show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+      >
+        {show ? 'Sembunyikan' : 'Tampilkan'}
+      </button>
+    </div>
+  );
+}
+
+function SetPasswordModal({ member, onClose, onDone }: { member: TeamMember | null; onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
+  const [pw, setPw] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (member) setPw('');
+  }, [member]);
+
+  const save = async () => {
+    if (!member || pw.length < MIN_PASSWORD) return;
+    setBusy(true);
+    try {
+      const r = await setMemberPassword(member.email, pw);
+      toast(r.created ? `Akun ${member.email} dibuat dengan kata sandi baru` : `Kata sandi ${member.email} diganti`);
+      onDone();
+      onClose();
+    } catch (e) {
+      toast(errMsg(e), 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={member !== null}
+      title="Atur kata sandi"
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={onClose}>Batal</Button>
+          <Button variant="primary" disabled={busy || pw.length < MIN_PASSWORD} onClick={save}>
+            {busy ? 'Menyimpan…' : 'Simpan kata sandi'}
+          </Button>
+        </>
+      }
+    >
+      <form
+        className="space-y-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save();
+        }}
+      >
+        <p className="text-sm text-slate-600">
+          Kata sandi baru untuk <b className="text-slate-900">{member?.nama || member?.email}</b> ({member?.email}). Bila anggota ini belum punya akun, akunnya
+          dibuat sekalian.
+        </p>
+        <Field label="Kata sandi baru" hint={`Minimal ${MIN_PASSWORD} karakter. Sampaikan ke anggota secara pribadi.`}>
+          <PasswordInput value={pw} onChange={setPw} autoFocus />
+        </Field>
+      </form>
+    </Modal>
   );
 }

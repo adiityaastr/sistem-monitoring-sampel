@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Logo, useAuth } from './AuthProvider';
-import { IconLogOut } from './icons';
+import { IconChevronDown, IconLogOut, IconMenu } from './icons';
 
 const NAV = [
   { to: '/', label: 'Project', end: true },
@@ -11,10 +11,32 @@ const NAV = [
   { to: '/pengaturan', label: 'Pengaturan' },
 ];
 
+const NAV_HIDDEN_KEY = 'navHidden';
+
+function readNavHidden(): boolean {
+  try {
+    return localStorage.getItem(NAV_HIDDEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export function Layout() {
   const { member, signOut } = useAuth();
   const { pathname } = useLocation();
   const mobileNav = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // HP/tablet: header bisa disembunyikan manual; pilihan diingat di browser ini
+  const [navHidden, setNavHidden] = useState(readNavHidden);
+  const toggleNav = (v: boolean) => {
+    setNavHidden(v);
+    try {
+      localStorage.setItem(NAV_HIDDEN_KEY, v ? '1' : '0');
+    } catch {
+      /* penyimpanan diblokir: tetap berlaku sampai halaman dimuat ulang */
+    }
+  };
 
   // HP/tablet: geser menu agar halaman aktif selalu terlihat
   useEffect(() => {
@@ -23,11 +45,27 @@ export function Layout() {
     if (!nav || !active) return;
     const left = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2;
     nav.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
-  }, [pathname]);
+  }, [pathname, navHidden]);
+
+  // tinggi header yang terlihat (0 saat disembunyikan) untuk elemen yang menempel di bawahnya
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const sync = () => {
+      root.style.setProperty('--header-h', `${el.offsetHeight}px`);
+      // ruang di kanan atas untuk tombol "Tampilkan menu" (dipakai bar yang menempel di atas)
+      root.style.setProperty('--nav-fab', el.offsetHeight === 0 ? '2.75rem' : '0px');
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [navHidden]);
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:hidden">
+      <header ref={headerRef} className={`sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:hidden ${navHidden ? 'max-lg:hidden' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-4 px-4">
           <Logo />
           <nav className="ml-4 hidden gap-1 lg:flex" aria-label="Menu utama">
@@ -35,7 +73,7 @@ export function Layout() {
               <NavItem key={n.to} {...n} />
             ))}
           </nav>
-          <div className="ml-auto flex shrink-0 items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-3">
             <span className="hidden max-w-[180px] text-right text-xs leading-tight text-slate-600 sm:block lg:hidden xl:block">
               <span className="block truncate font-semibold text-slate-800">{member.nama || member.email}</span>
               {member.role === 'admin' ? 'Admin' : 'Anggota'}
@@ -45,6 +83,15 @@ export function Layout() {
               <span className="hidden sm:inline">Keluar</span>
               <span className="sr-only sm:hidden">Keluar</span>
             </button>
+            <button
+              onClick={() => toggleNav(true)}
+              className="inline-flex h-9 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 lg:hidden"
+              aria-label="Sembunyikan menu"
+              title="Sembunyikan menu agar layar lebih lega"
+            >
+              <IconChevronDown className="h-5 w-5 rotate-180" />
+              <span className="hidden sm:inline">Sembunyikan</span>
+            </button>
           </div>
         </div>
         <nav ref={mobileNav} aria-label="Menu utama" className="flex gap-1 overflow-x-auto border-t border-slate-100 px-3 py-1.5 [scrollbar-width:none] lg:hidden">
@@ -53,6 +100,18 @@ export function Layout() {
           ))}
         </nav>
       </header>
+
+      {navHidden && (
+        <button
+          onClick={() => toggleNav(false)}
+          className="fixed right-3 top-2.5 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg ring-4 ring-white/70 transition-colors hover:bg-slate-700 lg:hidden print:hidden"
+          aria-label="Tampilkan menu"
+          title="Tampilkan menu"
+        >
+          <IconMenu className="h-5 w-5" />
+        </button>
+      )}
+
       <main className="mx-auto max-w-[1600px] px-4 py-5 sm:py-6">
         <Outlet />
       </main>

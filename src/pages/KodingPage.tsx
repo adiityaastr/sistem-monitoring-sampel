@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { assignKelompok, fetchProjects } from '../lib/data';
-import { autoGroupKoding, compareKelompok, MAX_PER_KELOMPOK } from '../lib/koding';
+import { autoGroupKoding, compareKelompok, kelompokNumber, kelompokOptions, MAX_PER_KELOMPOK } from '../lib/koding';
 import { exportKodingXlsx } from '../lib/excelExport';
 import { exportKodingPdf, printKodingPdf, type KodingPdfGroup } from '../lib/kodingPdf';
 import { IconDownload, IconPrinter } from '../components/icons';
-import { TextCell } from '../components/cells';
+import { KelompokSelect, TextCell } from '../components/cells';
 import { langkahBerikutnya, norm, STEP } from '../lib/rules';
 import { useItems } from '../lib/useItems';
 import type { Item, Project } from '../lib/types';
@@ -54,7 +54,7 @@ export function KodingPage() {
   }, [items]);
 
   const shownGroups = groups.filter((g) => showSubmitted || !g.submitted);
-  const labels = groups.map((g) => g.label);
+  const kel = useMemo(() => kelompokOptions(items), [items]);
 
   const runAutoGroup = async () => {
     const { assignments, oversized } = autoGroupKoding(items);
@@ -154,11 +154,6 @@ export function KodingPage() {
         <ErrorBox message={error} onRetry={reload} />
       ) : (
         <div className="space-y-6">
-          <datalist id="kelompok-list">
-            {labels.map((l) => (
-              <option key={l} value={l} />
-            ))}
-          </datalist>
           {/* item siap tapi belum berkelompok */}
           <section className="rounded-xl border border-sky-200 bg-sky-50/60 p-4 print:hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -179,7 +174,7 @@ export function KodingPage() {
                     <span className="font-bold text-slate-400">{it.brand}</span>
                     <span className="min-w-0 flex-1 truncate font-semibold text-slate-800">{it.nama_produk}</span>
                     <span className="tabular-nums text-slate-500">{it.no_batch}</span>
-                    <KelompokInput item={it} onSave={(v) => patch(it.id, { kelompok_koding: v })} />
+                    <KelompokSelect value={it.kelompok_koding} labels={kel.labels} next={kel.next} label={`Kelompok ${it.nama_produk} ${it.no_batch ?? ''}`} onSave={(v) => patch(it.id, { kelompok_koding: v })} />
                   </li>
                 ))}
               </ul>
@@ -205,6 +200,11 @@ export function KodingPage() {
                 <span className={`text-xs font-semibold ${g.items.length > MAX_PER_KELOMPOK ? 'text-rose-600' : 'text-slate-500'}`}>{g.items.length} item</span>
                 {g.submitted ? <Badge value="SUDAH DISERAHKAN" tone="green" /> : <Badge value="BELUM DISERAHKAN" tone="blue" />}
                 {g.missingLink > 0 && <Badge value={`⚠ ${g.missingLink} tanpa link file`} tone="red" />}
+                {kelompokNumber(g.label) === null && (
+                  <span className="text-xs font-semibold text-rose-700 print:hidden" title="Pilih kelompok yang benar di kolom Kelompok tiap item">
+                    ⚠ Nama kelompok tidak baku. Pindahkan itemnya ke kelompok yang benar.
+                  </span>
+                )}
                 <div className="ml-auto flex flex-wrap gap-2 print:hidden">
                   <Button size="sm" disabled={pdfBusy !== null} onClick={() => runPdf('print', g.label, [g])} aria-label={`Cetak ${g.label}`}>
                     <IconPrinter className="h-3.5 w-3.5" />
@@ -241,7 +241,7 @@ export function KodingPage() {
                           <td className="px-3 py-1.5">
                             <span className="hidden print:inline">{g.label}</span>
                             <span className="print:hidden">
-                              <KelompokInput item={it} onSave={(v) => patch(it.id, { kelompok_koding: v })} />
+                              <KelompokSelect value={it.kelompok_koding} labels={kel.labels} next={kel.next} label={`Kelompok ${it.nama_produk} ${it.no_batch ?? ''}`} onSave={(v) => patch(it.id, { kelompok_koding: v })} />
                             </span>
                           </td>
                           <td className="px-3 py-1.5 font-semibold text-slate-800">
@@ -268,27 +268,5 @@ export function KodingPage() {
         </div>
       )}
     </>
-  );
-}
-
-/** Ubah kelompok manual; kosongkan untuk mengeluarkan dari kelompok. */
-function KelompokInput({ item, onSave }: { item: Item; onSave: (v: string | null) => void }) {
-  const [draft, setDraft] = useState(item.kelompok_koding ?? '');
-  useEffect(() => setDraft(item.kelompok_koding ?? ''), [item.kelompok_koding]);
-  const commit = () => {
-    const v = norm(draft) || null;
-    if (v !== (item.kelompok_koding ?? null)) onSave(v);
-  };
-  return (
-    <input
-        aria-label={`Kelompok ${item.nama_produk} ${item.no_batch ?? ''}`}
-        list="kelompok-list"
-        className="h-7 w-24 rounded-md border border-slate-200 bg-white px-1.5 text-[11px] font-semibold uppercase focus:border-sky-400 focus:outline-none"
-        placeholder="kelompok"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-      />
   );
 }

@@ -29,7 +29,14 @@ export interface Item {
   diserahkan_ke_koding: string | null;
   koding_kemasan: string | null;
   diserahkan_ke_produksi: string | null;
+  /** tanggal diserahkan ke produksi */
   tanggal_diserahkan: string | null;
+  /** tanggal diserahkan ke koding */
+  tanggal_diserahkan_koding: string | null;
+  /** tanggal hasil koding diterima dari tim koding */
+  tanggal_terima_koding: string | null;
+  /** tanggal sampel diterima dari produksi */
+  tanggal_terima_produksi: string | null;
   status_sampel: string | null;
   selesai: string | null;
   catatan: string | null;

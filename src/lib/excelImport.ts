@@ -73,6 +73,20 @@ const HEADER_ALIASES: Record<string, Field> = {
   'TANGGAL DISERAHKAN': 'tanggal_diserahkan',
   'TGL DISERAHKAN': 'tanggal_diserahkan',
   'TANGGAL': 'tanggal_diserahkan',
+  'TGL KE PRODUKSI': 'tanggal_diserahkan',
+  'TGL SERAH KE PRODUKSI': 'tanggal_diserahkan',
+  'TGL TERIMA DARI PRODUKSI': 'tanggal_terima_produksi',
+  'TANGGAL TERIMA DARI PRODUKSI': 'tanggal_terima_produksi',
+  'TGL TERIMA PRODUKSI': 'tanggal_terima_produksi',
+  'TGL DISERAHKAN KE PRODUKSI': 'tanggal_diserahkan',
+  'TANGGAL DISERAHKAN KE PRODUKSI': 'tanggal_diserahkan',
+  'TGL KE KODING': 'tanggal_diserahkan_koding',
+  'TGL SERAH KE KODING': 'tanggal_diserahkan_koding',
+  'TGL TERIMA DARI KODING': 'tanggal_terima_koding',
+  'TANGGAL TERIMA DARI KODING': 'tanggal_terima_koding',
+  'TGL TERIMA KODING': 'tanggal_terima_koding',
+  'TGL DISERAHKAN KE KODING': 'tanggal_diserahkan_koding',
+  'TANGGAL DISERAHKAN KE KODING': 'tanggal_diserahkan_koding',
   'STATUS SAMPEL': 'status_sampel',
   'SELESAI': 'selesai',
   'CATATAN': 'catatan',
@@ -87,6 +101,7 @@ const UPPER_FIELDS = new Set<Field>([
 ]);
 
 const LINK_FIELDS = new Set<Field>(['file_kemasan']);
+const DATE_FIELDS = new Set<Field>(['tanggal_diserahkan', 'tanggal_diserahkan_koding', 'tanggal_terima_koding', 'tanggal_terima_produksi']);
 
 function headerKey(v: unknown): string {
   return norm(String(v ?? '').replace(/[^A-Za-z0-9 ]+/g, ' '));
@@ -186,7 +201,7 @@ function readBlocks(grid: Grid, warnings: string[]): { brand: Brand | null; rec:
     for (const [i, field] of header) {
       const cell = row[i];
       let val: string | null;
-      if (field === 'tanggal_diserahkan') {
+      if (DATE_FIELDS.has(field)) {
         val = parseDateValue(cell?.v);
         if (!val && text(cell)) warnings.push(`Baris ${r + 1}: tanggal "${text(cell)}" tidak dikenali, dikosongkan.`);
       } else if (LINK_FIELDS.has(field)) {
@@ -254,6 +269,9 @@ export function parseProjectGrid(sheet: string, grid: Grid): ParsedProject {
       koding_kemasan: v.koding_kemasan ?? 'BELUM',
       diserahkan_ke_produksi: v.diserahkan_ke_produksi ?? 'BELUM',
       tanggal_diserahkan: v.tanggal_diserahkan ?? null,
+      tanggal_diserahkan_koding: v.tanggal_diserahkan_koding ?? null,
+      tanggal_terima_koding: v.tanggal_terima_koding ?? null,
+      tanggal_terima_produksi: v.tanggal_terima_produksi ?? null,
       status_sampel: v.status_sampel ?? null,
       selesai: v.selesai ?? 'BELUM',
       catatan: v.catatan ?? null,

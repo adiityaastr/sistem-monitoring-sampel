@@ -4,6 +4,7 @@ import { deleteProject, fetchProject, insertItems, updateProject } from '../lib/
 import { exportProjectXlsx } from '../lib/excelExport';
 import { langkahBerikutnya, norm, STEP_ORDER } from '../lib/rules';
 import { STEP_BAR } from '../lib/badge';
+import { kelompokOptions } from '../lib/koding';
 import { useItems } from '../lib/useItems';
 import { BRANDS, type Brand, type Project } from '../lib/types';
 import { PageHeader } from '../components/Layout';
@@ -34,6 +35,9 @@ export function ProjectDetailPage() {
     if (!id) return;
     fetchProject(id).then(setProject, (e) => setProjectError(errMsg(e)));
   }, [id]);
+
+  // pilihan kelompok koding dihitung dari semua item project (EPI + AZH)
+  const kelompok = useMemo(() => kelompokOptions(items), [items]);
 
   const stepCounts = useMemo(() => {
     const c = new Map<string, number>();
@@ -131,27 +135,35 @@ export function ProjectDetailPage() {
         {showRekap && <RekapPanel items={items} />}
       </div>
 
-      <div className="sticky top-14 z-30 -mx-4 mb-3 flex flex-wrap items-center gap-2 bg-slate-100/95 px-4 py-2 backdrop-blur max-lg:top-[106px] print:hidden">
-        <div className="relative w-full max-w-sm">
+      {/* menempel tepat di bawah header; naik ke paling atas saat header disembunyikan (HP/tablet) */}
+      <div className="sticky top-[var(--header-h,57px)] z-30 -mx-4 mb-3 flex items-center gap-2 bg-slate-100/95 px-4 py-2 pr-[calc(1rem+var(--nav-fab,0px))] backdrop-blur print:hidden">
+        <div className="relative min-w-0 flex-1 sm:max-w-sm">
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
             type="search"
             className={`${inputCls} pl-9`}
-            placeholder="Cari nama produk atau no batch…"
+            placeholder="Cari…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Cari nama produk atau no batch"
           />
         </div>
-        <div className="flex rounded-lg bg-white p-1 text-sm font-semibold ring-1 ring-slate-200" role="group" aria-label="Tampilkan brand">
+        <div className="flex shrink-0 rounded-lg bg-white p-1 text-sm font-semibold ring-1 ring-slate-200" role="group" aria-label="Tampilkan brand">
           {(['ALL', ...BRANDS] as const).map((b) => (
             <button
               key={b}
               aria-pressed={brandTab === b}
-              className={`h-8 rounded-md px-3 transition-colors ${brandTab === b ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+              className={`h-8 rounded-md px-2 transition-colors sm:px-3 ${brandTab === b ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
               onClick={() => setBrandTab(b)}
             >
-              {b === 'ALL' ? 'EPI + AZH' : b}
+              {b === 'ALL' ? (
+                <>
+                  <span className="sm:hidden">Semua</span>
+                  <span className="hidden sm:inline">EPI + AZH</span>
+                </>
+              ) : (
+                b
+              )}
             </button>
           ))}
         </div>
@@ -176,7 +188,7 @@ export function ProjectDetailPage() {
                     Tambah item {brand}
                   </Button>
                 </div>
-                <ItemTable items={brandItems} search={search} onPatch={patch} selected={selected} setSelected={setSelected} />
+                <ItemTable items={brandItems} search={search} onPatch={patch} selected={selected} setSelected={setSelected} kelompok={kelompok} />
               </section>
             );
           })}
@@ -185,6 +197,7 @@ export function ProjectDetailPage() {
 
       {selected.size > 0 && (
         <BulkBar
+          kelompok={kelompok}
           count={selected.size}
           onClear={() => setSelected(new Set())}
           onApply={(p) => bulk([...selected], p)}
@@ -245,6 +258,9 @@ function AddItemModal({ brand, onClose, onSave }: { brand: Brand | null; onClose
         koding_kemasan: 'BELUM',
         diserahkan_ke_produksi: 'BELUM',
         tanggal_diserahkan: null,
+        tanggal_diserahkan_koding: null,
+        tanggal_terima_koding: null,
+        tanggal_terima_produksi: null,
         status_sampel: 'BELUM DIBUAT',
         selesai: 'BELUM',
         catatan: null,

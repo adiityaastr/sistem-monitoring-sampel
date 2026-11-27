@@ -23,6 +23,27 @@ export function maxKelompokNumber(items: { kelompok_koding?: string | null }[]):
   return items.reduce((max, it) => Math.max(max, kelompokNumber(it.kelompok_koding) ?? 0), 0);
 }
 
+export interface KelompokOptions {
+  /** kelompok berformat baku yang sudah dipakai di project, urut KODING 1, 2, … */
+  labels: string[];
+  /** kelompok baru berikutnya, mis. "KODING 4" */
+  next: string;
+}
+
+/**
+ * Pilihan kelompok untuk dropdown. Kelompok tidak pernah diketik manual
+ * agar tidak ada kelompok "berbeda" karena salah tulis.
+ */
+export function kelompokOptions(items: { kelompok_koding?: string | null }[]): KelompokOptions {
+  const nums = new Set<number>();
+  for (const it of items) {
+    const n = kelompokNumber(it.kelompok_koding);
+    if (n !== null) nums.add(n);
+  }
+  const sorted = [...nums].sort((a, b) => a - b);
+  return { labels: sorted.map(kelompokLabel), next: kelompokLabel((sorted[sorted.length - 1] ?? 0) + 1) };
+}
+
 export interface GroupingResult {
   /** id item → label kelompok baru */
   assignments: Map<string, string>;

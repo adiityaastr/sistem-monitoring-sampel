@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { autoGroupKoding, compareKelompok, kelompokNumber, maxKelompokNumber, type KodingItem } from './koding';
+import { autoGroupKoding, compareKelompok, kelompokNumber, maxKelompokNumber, type KodingItem, kelompokOptions } from './koding';
 
 let seq = 0;
 /** Item yang siap "SERAHKAN KE KODING" (punya file kemasan). */
@@ -110,5 +110,22 @@ describe('autoGroupKoding', () => {
 
   it('tidak membuat kelompok bila tidak ada item yang perlu', () => {
     expect(autoGroupKoding([]).assignments.size).toBe(0);
+  });
+});
+
+describe('kelompokOptions', () => {
+  it('hanya mengambil label baku, urut angka, dan menyiapkan nomor berikutnya', () => {
+    const items = [
+      { kelompok_koding: 'KODING 2' },
+      { kelompok_koding: 'koding 10' },
+      { kelompok_koding: 'GANTI KODING 1' },
+      { kelompok_koding: null },
+      { kelompok_koding: 'KODING 2' },
+    ];
+    expect(kelompokOptions(items)).toEqual({ labels: ['KODING 2', 'KODING 10'], next: 'KODING 11' });
+  });
+
+  it('project tanpa kelompok mulai dari KODING 1', () => {
+    expect(kelompokOptions([{ kelompok_koding: null }])).toEqual({ labels: [], next: 'KODING 1' });
   });
 });

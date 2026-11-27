@@ -48,6 +48,49 @@ export function SelectCell({
   );
 }
 
+/**
+ * Kelompok koding: hanya bisa dipilih (tidak diketik) agar penulisannya
+ * selalu baku "KODING n". Nilai lama yang tidak baku tetap tampil dan
+ * ditandai supaya mudah dipindahkan ke kelompok yang benar.
+ */
+export function KelompokSelect({
+  value,
+  labels,
+  next,
+  onSave,
+  label,
+  className = '',
+}: {
+  value: string | null;
+  labels: string[];
+  next: string;
+  onSave: (v: string | null) => void;
+  label: string;
+  className?: string;
+}) {
+  const v = value ?? '';
+  const nonStandard = v !== '' && !labels.includes(v) && v !== next;
+  const tone = !v ? 'bg-white text-slate-500 ring-slate-300' : nonStandard ? TONE_CLASSES.red : TONE_CLASSES.blue;
+  return (
+    <select
+      aria-label={label}
+      title={nonStandard ? `"${v}" bukan nama kelompok baku. Pilih kelompok yang benar.` : undefined}
+      className={`${selectBase} ${chevron} ${tone} max-w-full ${className}`}
+      value={v}
+      onChange={(e) => onSave(e.target.value || null)}
+    >
+      <option value="">— tanpa kelompok —</option>
+      {nonStandard && <option value={v}>⚠ {v} (tidak baku)</option>}
+      {labels.map((l) => (
+        <option key={l} value={l}>
+          {l}
+        </option>
+      ))}
+      <option value={next}>+ {next} (kelompok baru)</option>
+    </select>
+  );
+}
+
 /** STATUS DESAIN: tampil hasil hitungan; pilihan mengisi status_desain_manual. */
 export function DesainCell({ computed, manual, onSave, label }: { computed: string; manual: string | null; onSave: (v: string | null) => void; label: string }) {
   return (

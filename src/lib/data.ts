@@ -116,6 +116,36 @@ export async function upsertMember(m: Partial<TeamMember>): Promise<TeamMember> 
   return check(await supabase.from('team_members').upsert(m).select().single());
 }
 
+// ------------------------------------------------- akun login (khusus admin)
+// Dijalankan lewat Edge Function "admin-users" karena membuat akun butuh
+// kunci service role yang tidak boleh ada di aplikasi web.
+
+async function callAdminUsers(body: Record<string, unknown>): Promise<{ ok: boolean; created: boolean }> {
+  const { data, error } = await supabase.functions.invoke('admin-users', { body });
+  if (error) {
+    let msg = error.message;
+    try {
+      const j = await (error as { context?: Response }).context?.json();
+      if (j?.error) msg = j.error;
+    } catch {
+      /* respons bukan JSON */
+    }
+    throw new Error(msg);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+/** Buat akun login (langsung aktif) dan daftarkan sebagai anggota tim. */
+export function createMemberAccount(p: { email: string; password: string; nama: string | null; role: TeamMember['role'] }) {
+  return callAdminUsers({ action: 'create', ...p });
+}
+
+/** Ganti kata sandi anggota; akun dibuat bila anggota belum punya. */
+export function setMemberPassword(email: string, password: string) {
+  return callAdminUsers({ action: 'set_password', email, password });
+}
+
 export async function deleteMember(id: string): Promise<void> {
   check(await supabase.from('team_members').delete().eq('id', id));
 }

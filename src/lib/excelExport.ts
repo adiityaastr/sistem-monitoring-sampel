@@ -20,8 +20,9 @@ export async function exportProjectXlsx(project: Project, items: Item[]): Promis
       aoa.push([
         String(idx + 1),
         ...ITEM_COLUMNS.map((c) => {
-          if (c.key === 'tanggal_diserahkan' && it.tanggal_diserahkan) {
-            const [y, m, day] = it.tanggal_diserahkan.split('-').map(Number);
+          const iso = c.type === 'date' && c.field ? (it[c.field] as string | null) : null;
+          if (iso) {
+            const [y, m, day] = iso.split('-').map(Number);
             return new Date(y, m - 1, day);
           }
           return cellText(c, it, d);

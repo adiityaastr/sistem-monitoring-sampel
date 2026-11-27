@@ -1,7 +1,7 @@
 import type { Item, OptionKategori } from './types';
 import { derive, type Derived } from './rules';
 
-export type ColType = 'text' | 'select' | 'link' | 'date' | 'computed' | 'desain';
+export type ColType = 'text' | 'select' | 'link' | 'date' | 'computed' | 'desain' | 'kelompok';
 
 export interface ItemColumn {
   key: string;
@@ -30,12 +30,15 @@ export const ITEM_COLUMNS: ItemColumn[] = [
   { key: 'status_desain', label: 'Status Desain', group: 'Desain', type: 'desain', field: 'status_desain_manual', width: 'min-w-[130px]' },
   { key: 'file_kemasan', label: 'File Kemasan', group: 'Desain', type: 'link', field: 'file_kemasan', width: 'min-w-[150px]' },
   { key: 'kemasan', label: 'Kemasan', group: 'Kemasan', type: 'select', field: 'kemasan', kategori: 'kemasan', width: 'min-w-[140px]' },
-  { key: 'kelompok_koding', label: 'Kelompok Koding', group: 'Koding', type: 'text', field: 'kelompok_koding', width: 'min-w-[110px]' },
+  { key: 'kelompok_koding', label: 'Kelompok Koding', group: 'Koding', type: 'kelompok', field: 'kelompok_koding', width: 'min-w-[110px]' },
   { key: 'diserahkan_ke_koding', label: 'Diserahkan ke Koding', group: 'Koding', type: 'select', field: 'diserahkan_ke_koding', kategori: 'status', width: 'min-w-[110px]' },
+  { key: 'tanggal_diserahkan_koding', label: 'Tgl Serah ke Koding', group: 'Koding', type: 'date', field: 'tanggal_diserahkan_koding', width: 'min-w-[130px]' },
   { key: 'koding_kemasan', label: 'Koding Kemasan', group: 'Koding', type: 'select', field: 'koding_kemasan', kategori: 'status', width: 'min-w-[110px]' },
+  { key: 'tanggal_terima_koding', label: 'Tgl Terima dari Koding', group: 'Koding', type: 'date', field: 'tanggal_terima_koding', width: 'min-w-[130px]' },
   { key: 'diserahkan_ke_produksi', label: 'Diserahkan ke Produksi', group: 'Produksi', type: 'select', field: 'diserahkan_ke_produksi', kategori: 'status', width: 'min-w-[110px]' },
-  { key: 'tanggal_diserahkan', label: 'Tanggal', group: 'Produksi', type: 'date', field: 'tanggal_diserahkan', width: 'min-w-[130px]' },
+  { key: 'tanggal_diserahkan', label: 'Tgl Serah ke Produksi', group: 'Produksi', type: 'date', field: 'tanggal_diserahkan', width: 'min-w-[130px]' },
   { key: 'status_sampel', label: 'Status Sampel', group: 'Produksi', type: 'select', field: 'status_sampel', kategori: 'status_sampel', width: 'min-w-[140px]' },
+  { key: 'tanggal_terima_produksi', label: 'Tgl Terima dari Produksi', group: 'Produksi', type: 'date', field: 'tanggal_terima_produksi', width: 'min-w-[130px]' },
   { key: 'selesai', label: 'Selesai', group: 'Selesai', type: 'select', field: 'selesai', kategori: 'status', width: 'min-w-[100px]' },
   { key: 'status', label: 'Status', group: 'Ringkasan', type: 'computed', width: 'min-w-[170px]' },
   { key: 'langkah', label: 'Langkah Berikutnya', group: 'Ringkasan', type: 'computed', width: 'min-w-[200px]' },
@@ -59,9 +62,8 @@ export function cellText(col: ItemColumn, item: Item, d: Derived = derive(item))
       return d.status;
     case 'langkah':
       return d.langkah;
-    case 'tanggal_diserahkan':
-      return formatIsoDate(item.tanggal_diserahkan);
     default:
+      if (col.type === 'date' && col.field) return formatIsoDate(item[col.field] as string | null);
       return col.field ? String(item[col.field] ?? '') : '';
   }
 }
